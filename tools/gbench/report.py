@@ -76,10 +76,15 @@ def filter_benchmark(json_orig, family, replacement=""):
     filtered = {}
     filtered['benchmarks'] = []
     for be in json_orig['benchmarks']:
-        if not regex.search(be['name']):
+        m = regex.search(be['name'])
+        if not m:
             continue
         filteredbench = copy.deepcopy(be) # Do NOT modify the old name!
-        filteredbench['name'] = regex.sub(replacement, filteredbench['name'])
+        if len(m.groups()) > 0:
+            repl = " ".join(m.groups()) + " " + replacement
+        else:
+            repl = replacement
+        filteredbench['name'] = regex.sub(repl, filteredbench['name'])
         filtered['benchmarks'].append(filteredbench)
     return filtered
 
@@ -116,7 +121,7 @@ def generate_difference_report(json1, json2, use_color=True):
                 return BC_WHITE
             else:
                 return BC_CYAN
-        fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
+        fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14,.0f}{:14,.0f}{endc}{:14,.0f}{:14,.0f}"
         tres = calculate_change(bn['real_time'], other_bench['real_time'])
         cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
         output_strs += [color_format(use_color, fmt_str,
